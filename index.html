@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер: Единичная окружность</title>
+    <script>
+        MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']] }
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            line-height: 1.5;
+        }
+        h1 { font-size: 1.5em; margin-bottom: 20px; }
+        .question { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            background: #fafafa;
+        }
+        .question p { font-weight: 600; margin-top: 0; }
+        .options label { 
+            display: block; 
+            margin: 8px 0; 
+            cursor: pointer; 
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .options label:hover { background: #f0f0f0; }
+        .correct { background-color: #d4edda !important; font-weight: 500; }
+        .incorrect { background-color: #f8d7da !important; color: #b00020; font-weight: 500; }
+        .results { 
+            font-size: 1.2em; 
+            margin: 20px 0; 
+            font-weight: bold; 
+        }
+        button { 
+            padding: 10px 20px; 
+            font-size: 1em; 
+            cursor: pointer; 
+            border: none;
+            border-radius: 4px;
+            background: #0056b3;
+            color: white;
+            margin-right: 10px;
+        }
+        button:hover { background: #004494; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <h1>Тренажер: Единичная окружность и радианы</h1>
+    <div id="quiz-container"></div>
+    <button id="submit-btn" onclick="checkAnswers()">Проверить ответы</button>
+    <button id="reset-btn" onclick="resetQuiz()" style="display:none;">Пройти еще раз</button>
+    <div id="results" class="results"></div>
+
+    <script>
+        const allQuestions = [
+            { q: "Чему равен радиус единичной окружности?", opts: ["0", "1", "2", "\\( \\pi \\)"], correct: 1 },
+            { q: "В какой точке находится центр единичной окружности?", opts: ["\\( (1; 0) \\)", "\\( (0; 1) \\)", "\\( (0; 0) \\)", "\\( (-1; 0) \\)"], correct: 2 },
+            { q: "Какая точка является начальной для отсчета углов на координатной окружности?", opts: ["\\( (1; 0) \\)", "\\( (0; 1) \\)", "\\( (-1; 0) \\)", "\\( (0; -1) \\)"], correct: 0 },
+            { q: "Какое направление движения по окружности считается положительным?", opts: ["По часовой стрелке", "Против часовой стрелки", "Вдоль оси ординат", "Вдоль оси абсцисс"], correct: 1 },
+            { q: "Какое направление движения по окружности считается отрицательным?", opts: ["По часовой стрелке", "Против часовой стрелки", "От центра к краям", "По спирали"], correct: 0 },
+            { q: "Что такое 1 радиан?", opts: ["Угол, равный 60 градусам", "Центральный угол, опирающийся на дугу, длина которой равна радиусу", "Угол, опирающийся на всю окружность", "Половина прямого угла"], correct: 1 },
+            { q: "Чему примерно равен 1 радиан в градусной мере?", opts: ["45°", "60°", "57°", "90°"], correct: 2 },
+            { q: "Чему равна длина полной окружности в радианах?", opts: ["\\( \\pi \\)", "\\( 2\\pi \\)", "\\( 3\\pi \\)", "\\( 4\\pi \\)"], correct: 1 },
+            { q: "Как перевести градусную меру угла в радианную?", opts: ["Умножить на \\( \\frac{180}{\\pi} \\)", "Умножить на \\( \\frac{\\pi}{180} \\)", "Разделить на 360", "Умножить на 57"], correct: 1 },
+            { q: "Как перевести радианную меру угла в градусную?", opts: ["Умножить на \\( \\frac{180}{\\pi} \\)", "Умножить на \\( \\frac{\\pi}{180} \\)", "Умножить на \\( \\pi \\)", "Разделить на 2"], correct: 0 },
+            { q: "Чему равны 30° в радианной мере?", opts: ["\\( \\frac{\\pi}{2} \\)", "\\( \\frac{\\pi}{3} \\)", "\\( \\frac{\\pi}{6} \\)", "\\( \\frac{\\pi}{4} \\)"], correct: 2 },
+            { q: "Чему равны 45° в радианной мере?", opts: ["\\( \\frac{\\pi}{6} \\)", "\\( \\frac{\\pi}{4} \\)", "\\( \\frac{\\pi}{3} \\)", "\\( \\frac{\\pi}{2} \\)"], correct: 1 },
+            { q: "Чему равны 60° в радианной мере?", opts: ["\\( \\frac{\\pi}{2} \\)", "\\( \\frac{\\pi}{3} \\)", "\\( \\frac{\\pi}{4} \\)", "\\( \\frac{\\pi}{6} \\)"], correct: 1 },
+            { q: "Чему равны 90° в радианной мере?", opts: ["\\( \\frac{\\pi}{3} \\)", "\\( \\frac{\\pi}{2} \\)", "\\( \\pi \\)", "\\( 2\\pi \\)"], correct: 1 },
+            { q: "Чему равны 120° в радианной мере?", opts: ["\\( \\frac{\\pi}{3} \\)", "\\( \\frac{2\\pi}{3} \\)", "\\( \\frac{3\\pi}{4} \\)", "\\( \\frac{5\\pi}{6} \\)"], correct: 1 },
+            { q: "Чему равны 135° в радианной мере?", opts: ["\\( \\frac{2\\pi}{3} \\)", "\\( \\frac{3\\pi}{4} \\)", "\\( \\frac{5\\pi}{6} \\)", "\\( \\frac{7\\pi}{6} \\)"], correct: 1 },
+            { q: "Чему равны 150° в радианной мере?", opts: ["\\( \\frac{\\pi}{2} \\)", "\\( \\frac{2\\pi}{3} \\)", "\\( \\frac{5\\pi}{6} \\)", "\\( \\frac{7\\pi}{6} \\)"], correct: 2 },
+            { q: "Чему равны 180° в радианной мере?", opts: ["\\( \\frac{\\pi}{2} \\)", "\\( \\pi \\)", "\\( 2\\pi \\)", "\\( 3\\pi \\)"], correct: 1 },
+            { q: "Чему равны 210° в радианной мере?", opts: ["\\( \\frac{5\\pi}{6} \\)", "\\( \\frac{7\\pi}{6} \\)", "\\( \\frac{4\\pi}{3} \\)", "\\( \\frac{3\\pi}{2} \\)"], correct: 1 },
+            { q: "Чему равны 225° в радианной мере?", opts: ["\\( \\frac{4\\pi}{3} \\)", "\\( \\frac{5\\pi}{4} \\)", "\\( \\frac{3\\pi}{2} \\)", "\\( \\frac{7\\pi}{4} \\)"], correct: 1 },
+            { q: "Чему равны 240° в радианной мере?", opts: ["\\( \\frac{5\\pi}{6} \\)", "\\( \\frac{7\\pi}{6} \\)", "\\( \\frac{4\\pi}{3} \\)", "\\( \\frac{3\\pi}{2} \\)"], correct: 2 },
+            { q: "Чему равны 270° в радианной мере?", opts: ["\\( \\pi \\)", "\\( \\frac{4\\pi}{3} \\)", "\\( \\frac{3\\pi}{2} \\)", "\\( \\frac{5\\pi}{3} \\)"], correct: 2 },
+            { q: "Чему равны 300° в радианной мере?", opts: ["\\( \\frac{4\\pi}{3} \\)", "\\( \\frac{3\\pi}{2} \\)", "\\( \\frac{5\\pi}{3} \\)", "\\( \\frac{11\\pi}{6} \\)"], correct: 2 },
+            { q: "Чему равны 330° в радианной мере?", opts: ["\\( \\frac{5\\pi}{3} \\)", "\\( \\frac{11\\pi}{6} \\)", "\\( 2\\pi \\)", "\\( \\frac{7\\pi}{6} \\)"], correct: 1 },
+            { q: "Чему равны 360° в радианной мере?", opts: ["\\( \\pi \\)", "\\( \\frac{3\\pi}{2} \\)", "\\( 2\\pi \\)", "\\( 4\\pi \\)"], correct: 2 },
+            { q: "Чему равны \\( \\frac{\\pi}{6} \\) в градусной мере?", opts: ["30°", "45°", "60°", "90°"], correct: 0 },
+            { q: "Чему равны \\( \\frac{\\pi}{4} \\) в градусной мере?", opts: ["30°", "45°", "60°", "90°"], correct: 1 },
+            { q: "Чему равны \\( \\frac{\\pi}{3} \\) в градусной мере?", opts: ["30°", "45°", "60°", "90°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{\\pi}{2} \\) в градусной мере?", opts: ["45°", "60°", "90°", "180°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{2\\pi}{3} \\) в градусной мере?", opts: ["60°", "90°", "120°", "150°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{3\\pi}{4} \\) в градусной мере?", opts: ["90°", "120°", "135°", "150°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{5\\pi}{6} \\) в градусной мере?", opts: ["120°", "150°", "180°", "210°"], correct: 1 },
+            { q: "Чему равны \\( \\pi \\) в градусной мере?", opts: ["90°", "135°", "180°", "360°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{7\\pi}{6} \\) в градусной мере?", opts: ["150°", "180°", "210°", "240°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{5\\pi}{4} \\) в градусной мере?", opts: ["180°", "210°", "225°", "240°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{4\\pi}{3} \\) в градусной мере?", opts: ["210°", "240°", "270°", "300°"], correct: 1 },
+            { q: "Чему равны \\( \\frac{3\\pi}{2} \\) в градусной мере?", opts: ["180°", "240°", "270°", "360°"], correct: 2 },
+            { q: "Чему равны \\( \\frac{5\\pi}{3} \\) в градусной мере?", opts: ["240°", "270°", "300°", "330°"], correct: 2 },
+            { q: "В какой четверти координатной плоскости находится угол 30°?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 0 },
+            { q: "В какой четверти находится угол 120°?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 1 },
+            { q: "В какой четверти находится угол 210°?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 2 },
+            { q: "В какой четверти находится угол 300°?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 3 },
+            { q: "В какой четверти находится угол \\( \\frac{\\pi}{4} \\)?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 0 },
+            { q: "В какой четверти находится угол \\( \\frac{3\\pi}{4} \\)?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 1 },
+            { q: "В какой четверти находится угол \\( \\frac{5\\pi}{4} \\)?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 2 },
+            { q: "В какой четверти находится угол \\( \\frac{7\\pi}{4} \\)?", opts: ["I четверть", "II четверть", "III четверть", "IV четверть"], correct: 3 },
+            { q: "С какой точкой совпадает точка, полученная поворотом на 400°?", opts: ["80°", "40°", "360°", "0°"], correct: 1 },
+            { q: "С какой точкой совпадает точка, полученная поворотом на -90°?", opts: ["90°", "180°", "270°", "360°"], correct: 2 },
+            { q: "С какой точкой совпадает точка, полученная поворотом на \\( 3\\pi \\)?", opts: ["0", "\\( \\pi \\)", "\\( 2\\pi \\)", "\\( \\frac{\\pi}{2} \\)"], correct: 1 },
+            { q: "Какая формула описывает периодичность углов в градусной мере?", opts: ["\\( \\alpha + 180^\\circ \\cdot n \\)", "\\( \\alpha + 360^\\circ \\cdot n \\)", "\\( \\alpha + 90^\\circ \\cdot n \\)", "\\( \\alpha + 2\\pi \\cdot n \\)"], correct: 1 }
+        ];
+
+        function getRandomQuestions(arr, num) {
+            const shuffled = [...arr].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, num);
+        }
+
+        let selectedQuestions = getRandomQuestions(allQuestions, 10);
+        let userAnswers = new Array(10).fill(-1);
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            selectedQuestions.forEach((q, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'question';
+                qDiv.id = `question-${index}`;
+                let html = `<p>${index + 1}. ${q.q}</p><div class="options">`;
+                q.opts.forEach((opt, optIndex) => {
+                    html += `
+                        <label id="label-${index}-${optIndex}">
+                            <input type="radio" name="q${index}" value="${optIndex}" onchange="userAnswers[${index}] = ${optIndex}">
+                            ${opt}
+                        </label>
+                    `;
+                });
+                html += `</div>`;
+                qDiv.innerHTML = html;
+                container.appendChild(qDiv);
+            });
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function checkAnswers() {
+            let correctCount = 0;
+            let incorrectCount = 0;
+
+            selectedQuestions.forEach((q, index) => {
+                const labels = document.querySelectorAll(`#question-${index} .options label`);
+                
+                labels.forEach(label => {
+                    label.classList.remove('correct', 'incorrect');
+                });
+
+                if (userAnswers[index] === q.correct) {
+                    correctCount++;
+                    document.getElementById(`label-${index}-${userAnswers[index]}`).classList.add('correct');
+                } else {
+                    incorrectCount++;
+                    if (userAnswers[index] !== -1) {
+                        document.getElementById(`label-${index}-${userAnswers[index]}`).classList.add('incorrect');
+                    }
+                    document.getElementById(`label-${index}-${q.correct}`).classList.add('correct');
+                }
+            });
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `Правильных ответов: ${correctCount}. Неправильных ответов: ${incorrectCount}.`;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('reset-btn').style.display = 'inline-block';
+        }
+
+        function resetQuiz() {
+            selectedQuestions = getRandomQuestions(allQuestions, 10);
+            userAnswers = new Array(10).fill(-1);
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('submit-btn').disabled = false;
+            document.getElementById('reset-btn').style.display = 'none';
+            renderQuiz();
+        }
+
+        renderQuiz();
+    </script>
+</body>
+</html>
